@@ -16,5 +16,30 @@ pipeline {
                 sh ''' mvn clean verify sonar:sonar -Dsonar.projectKey=mavenjar-app -Dsonar.projectName='mavenjar-app' -Dsonar.host.url=http://54.215.93.62:9000 -Dsonar.token=sqp_0a432c67984286d4ff555e43f2dd24fbc304335b '''
             }
         }
+        stage ('artifactory upload') {
+            steps {
+                sh ''' curl -v -u admin:admin123 --upload-file /var/lib/jenkins/workspace/Appjarfile/target/dependency/logback-core-1.2.3.jar http://13.57.245.13:8081/nexus/content/repositories/jar/ '''
+            }
+        }
+        stage ('create custom image'){
+            steps {
+                sh ''' docker build -t maven-jar . '''
+                sh ''' docker tag maven-jar mahesh9948/maven-jar-app:v1.1 '''
+            }
+        }
+        stage ('Push into DockerHub') {
+            steps {
+                script {
+                    withDockerRegistry(credentialsId: 'Docker-hub') {
+                        sh ''' docker push mahesh9948/maven-jar-app:v1.1 '''
+                    }
+                }
+            }
+        }
+        stage (' Run Application') {
+            steps {
+                sh ''' docker run --name mavenjar-con -d -p 9595:8080 mahesh9948/maven-jar-app:v1.1 '''
+            }
+        }
     }
 }
