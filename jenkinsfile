@@ -1,0 +1,20 @@
+pipeline {
+    agent any
+    stages {
+        stage ("git checkout") {
+            steps {
+                git 'https://github.com/mahesh241994/maven-jar-sample.git'
+            }
+        }
+        stage ('Build with maven') {
+            steps {
+                sh ''' mvn clean package '''
+            }
+        }
+        stage ('code quality with SonarQube') {
+            steps {
+                sh ''' mvn clean verify sonar:sonar -Dsonar.projectKey=mavenjar-app -Dsonar.projectName='mavenjar-app' -Dsonar.host.url=http://54.215.93.62:9000 -Dsonar.token=sqp_0a432c67984286d4ff555e43f2dd24fbc304335b '''
+            }
+        }
+    }
+}
